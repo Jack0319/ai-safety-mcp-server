@@ -31,6 +31,7 @@ class EvalModelClient:
     def _call_model(self, prompt: str) -> dict[str, Any]:
         if self.use_stub:
             raise EvaluationBackendUnavailable("Eval model client is in stub mode")
+        logger.debug(f"Calling LLM API: model={self.model}, prompt_length={len(prompt)}")
         try:
             response = completion(
                 model=self.model,
@@ -44,28 +45,44 @@ class EvalModelClient:
                 api_key=self.api_key,
                 temperature=0.0,
             )
+            logger.debug(f"LLM API call successful: model={self.model}")
         except Exception as exc:  # pragma: no cover - external service errors
+            logger.error(f"LLM API call failed: model={self.model}, error={exc}")
             raise EvaluationBackendUnavailable(str(exc)) from exc
 
         content = response.choices[0].message.get("content")  # type: ignore[index]
         if not content:
+            logger.error("LLM API returned empty response")
             raise EvaluationBackendUnavailable("Eval model returned empty response")
         try:
-            return orjson.loads(content)
+            result = orjson.loads(content)
+            logger.debug(f"LLM API response parsed successfully")
+            return result
         except orjson.JSONDecodeError as exc:
+            logger.error(f"LLM API response is not valid JSON: {content[:100]}...")
             raise EvaluationBackendUnavailable("Eval model produced invalid JSON") from exc
 
     def score_text(self, rubric: str, text: str, *, context: str | None = None, category: str | None = None) -> EvalScore:
+        text_length = len(text)
+        logger.debug(f"Scoring text: category={category}, text_length={text_length}, has_context={context is not None}")
+        
         prompt = rubric + "\n---\n" + text
         if context:
             prompt = f"Context:\n{context}\n---\n{prompt}"
+        
         if self.use_stub:
-            return heuristic_score(text, category=category)
+            logger.debug("Using heuristic scoring (stub mode)")
+            result = heuristic_score(text, category=category)
+            logger.debug(f"Heuristic score: {result.score:.2f}, label={result.label}")
+            return result
+        
         payload = self._call_model(prompt)
         score = float(payload.get("score", 0.0))
         explanation = payload.get("explanation")
         risk_areas = payload.get("risk_areas")
-        return EvalScore(score=clamp_score(score), label=score_to_label(score), explanation=explanation, risk_areas=risk_areas)
+        result = EvalScore(score=clamp_score(score), label=score_to_label(score), explanation=explanation, risk_areas=risk_areas)
+        logger.debug(f"LLM score: {result.score:.2f}, label={result.label}")
+        return result
 
 
 def clamp_score(value: float) -> float:

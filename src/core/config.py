@@ -4,7 +4,7 @@ from __future__ import annotations
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -33,7 +33,7 @@ class KnowledgeBaseConfig(BaseModel):
 
 
 class InterpretabilityConfig(BaseModel):
-    model_dir: Optional[Path] = None
+    model_dir: Optional[Union[Path, str]] = None  # Can be local path or HuggingFace model ID
     use_stub: bool = False
 
 
@@ -56,7 +56,11 @@ class AppSettings(BaseSettings):
     safety_eval_model: str = Field(default="anthropic/claude-3-opus", alias="SAFETY_EVAL_MODEL")
     litellm_api_key: Optional[str] = Field(default=None, alias="LITELLM_API_KEY")
 
-    interp_model_dir: Optional[Path] = Field(default=None, alias="INTERP_MODEL_DIR")
+    interp_model_dir: Optional[str] = Field(
+        default=None,
+        alias="INTERP_MODEL_DIR",
+        description="Local path to model directory OR HuggingFace model ID (e.g., 'gpt2', 'mistralai/Mistral-7B-v0.1')",
+    )
     governance_doc_path: Optional[Path] = Field(default=None, alias="GOVERNANCE_DOC_PATH")
 
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")

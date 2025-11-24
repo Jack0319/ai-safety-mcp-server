@@ -6,6 +6,12 @@ KB_SEARCH_INPUT = {
     "properties": {
         "query": {"type": "string"},
         "k": {"type": "integer", "minimum": 1, "maximum": 50, "default": 5},
+        "offset": {"type": "integer", "minimum": 0, "default": 0},
+        "order_by": {
+            "type": "string",
+            "enum": ["score", "year_desc", "year_asc"],
+            "default": "score",
+        },
         "filters": {
             "type": "object",
             "properties": {
@@ -31,11 +37,15 @@ KB_SEARCH_OUTPUT = {
                 "properties": {
                     "doc_id": {"type": "string"},
                     "title": {"type": "string"},
+                    "authors": {"type": "array", "items": {"type": "string"}},
+                    "year": {"type": "integer"},
+                    "org": {"type": "string"},
+                    "topic": {"type": "string"},
                     "url": {"type": "string"},
                     "snippet": {"type": "string"},
                     "score": {"type": "number"},
                     "source": {"type": "string"},
-                    "topic": {"type": "string"},
+                    "metadata": {"type": "object", "additionalProperties": True},
                 },
                 "required": ["doc_id", "title", "snippet", "score"],
                 "additionalProperties": True,
@@ -81,7 +91,20 @@ EVAL_OUTPUT = {
     "properties": {
         "score": {"type": "number", "minimum": 0, "maximum": 1},
         "label": {"type": "string", "enum": ["low", "medium", "high"]},
-        "explanation": {"type": "string"},
+        "rationale": {"type": "string"},
+        "explanation": {"type": "string"},  # Deprecated, use rationale
+        "dimensions": {
+            "type": "object",
+            "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1},
+        },
+        "sources": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
+        "metadata": {
+            "type": "object",
+            "additionalProperties": True,
+        },
     },
     "required": ["score", "label"],
     "additionalProperties": False,
@@ -154,4 +177,75 @@ HEALTH_CHECK_OUTPUT = {
     },
     "required": ["status"],
     "additionalProperties": True,
+}
+
+# New interpretability tool schemas
+ACTIVATION_PATCHING_INPUT = {
+    "type": "object",
+    "properties": {
+        "model_id": {"type": "string"},
+        "input_text": {"type": "string"},
+        "patch_text": {"type": "string"},
+        "layer_index": {"type": "integer", "minimum": 0},
+        "patch_position": {"type": ["integer", "null"], "minimum": 0},
+        "patch_type": {"type": "string", "enum": ["residual", "mlp", "attn"], "default": "residual"},
+    },
+    "required": ["model_id", "input_text", "patch_text", "layer_index"],
+    "additionalProperties": False,
+}
+
+CAUSAL_TRACING_INPUT = {
+    "type": "object",
+    "properties": {
+        "model_id": {"type": "string"},
+        "input_text": {"type": "string"},
+        "target_token": {"type": ["string", "null"]},
+        "layers_to_trace": {"type": ["array", "null"], "items": {"type": "integer"}},
+    },
+    "required": ["model_id", "input_text"],
+    "additionalProperties": False,
+}
+
+DIRECT_LOGIT_ATTRIBUTION_INPUT = {
+    "type": "object",
+    "properties": {
+        "model_id": {"type": "string"},
+        "input_text": {"type": "string"},
+        "target_token": {"type": ["string", "null"]},
+        "layer_index": {"type": ["integer", "null"], "minimum": 0},
+    },
+    "required": ["model_id", "input_text"],
+    "additionalProperties": False,
+}
+
+RESIDUAL_STREAM_INPUT = {
+    "type": "object",
+    "properties": {
+        "model_id": {"type": "string"},
+        "input_text": {"type": "string"},
+        "layer_index": {"type": "integer", "minimum": 0},
+        "analysis_type": {
+            "type": "string",
+            "enum": ["statistics", "norm", "cosine_similarity"],
+            "default": "statistics",
+        },
+    },
+    "required": ["model_id", "input_text", "layer_index"],
+    "additionalProperties": False,
+}
+
+GRADIENT_ATTRIBUTION_INPUT = {
+    "type": "object",
+    "properties": {
+        "model_id": {"type": "string"},
+        "input_text": {"type": "string"},
+        "target_token": {"type": ["string", "null"]},
+        "method": {
+            "type": "string",
+            "enum": ["gradient", "integrated_gradients", "saliency"],
+            "default": "integrated_gradients",
+        },
+    },
+    "required": ["model_id", "input_text"],
+    "additionalProperties": False,
 }

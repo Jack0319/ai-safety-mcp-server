@@ -1,4 +1,10 @@
-"""Logit lens inspection tool."""
+"""Logit lens inspection tool.
+
+References:
+- "Language Models are Few-Shot Learners" (Brown et al., 2020) - Original logit lens concept
+- TransformerLens: https://github.com/neelnanda-io/TransformerLens
+- Anthropic's interpretability research: https://www.anthropic.com/research
+"""
 from __future__ import annotations
 
 from typing import Dict, List

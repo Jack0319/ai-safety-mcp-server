@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  ai-safety-mcp:
+    build: .
+    container_name: ai-safety-mcp-server
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./ai_safety_kb.db:/app/ai_safety_kb.db
+      - ./models:/app/models  # If using local models
+    ports:
+      - "8080:8080"  # For future TCP transport
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+

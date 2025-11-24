@@ -23,7 +23,8 @@ dependencies = [
   "scikit-learn>=1.4",
   "orjson>=3.10",
   "anyio>=4.5",
-  "tenacity>=8.2"
+  "tenacity>=8.2",
+  "sentence-transformers>=2.2"
 ]
 
 [project.optional-dependencies]

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from core.config import EvalConfig
-from safety_evals import capability_risk, deception, dual_use, overall
+from safety_evals import bias, capability_risk, deception, dual_use, jailbreak, overall, prompt_injection, toxicity
 from safety_evals.base import EvalModelClient
 
 
@@ -33,6 +33,18 @@ class SafetyEvalSuite:
 
     def eval_overall_risk(self, text: str) -> dict:
         return overall.evaluate(text, client=self.client)
+
+    def eval_jailbreak(self, text: str, *, context: Optional[str] = None) -> dict:
+        return jailbreak.evaluate(text, context=context, client=self.client)
+
+    def eval_prompt_injection(self, text: str, *, context: Optional[str] = None) -> dict:
+        return prompt_injection.evaluate(text, context=context, client=self.client)
+
+    def eval_bias(self, text: str, *, context: Optional[str] = None) -> dict:
+        return bias.evaluate(text, context=context, client=self.client)
+
+    def eval_toxicity(self, text: str, *, context: Optional[str] = None) -> dict:
+        return toxicity.evaluate(text, context=context, client=self.client)
 
 
 __all__ = ["SafetyEvalSuite"]

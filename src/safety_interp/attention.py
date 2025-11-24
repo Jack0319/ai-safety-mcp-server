@@ -1,4 +1,10 @@
-"""Attention inspection tool."""
+"""Attention inspection tool.
+
+References:
+- "Attention is All You Need" (Vaswani et al., 2017) - Original attention mechanism
+- "What Does BERT Look At?" (Clark et al., 2019) - Attention analysis methodology
+- TransformerLens: https://github.com/neelnanda-io/TransformerLens
+"""
 from __future__ import annotations
 
 from typing import Dict
